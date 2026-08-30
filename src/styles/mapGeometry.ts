@@ -93,8 +93,17 @@ export function generateOutlinePoints(shape: FarmShape): Point[] {
       return local.map((p) => ({ x: p.x + x, y: p.y + y }));
     }
 
+    // A "polygon"-typed shape with no points yet (e.g. a freshly added
+    // Exotic Enclosure, which renders as a plain box until edited) starts
+    // freeform editing from its own bounding-box corners, same as "rect".
+    case "polygon":
     default:
-      return [];
+      return [
+        { x, y },
+        { x: x + width, y },
+        { x: x + width, y: y + height },
+        { x, y: y + height },
+      ];
   }
 }
 

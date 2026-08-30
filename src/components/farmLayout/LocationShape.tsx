@@ -6,6 +6,12 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { useBarnDrillDown } from "./useBarnDrillDown";
 import { useDemoAuth } from "../../contexts/DemoAuthContext";
+import {
+  createResizeMouseDownHandler,
+  createRotateMouseDownHandler,
+  ResizeHandlesOverlay,
+  ShapeRotateControl,
+} from "./shapeControls";
 
 interface Props {
   shape: FarmShape;
@@ -32,21 +38,6 @@ const categoryColorMap: Record<string, { base: string; border: string }> = {
   Other: { base: "#f5f5f5", border: "#a3a3a3" },
   Aviary: { base: "#fcb7fc", border: "#d830d8" },
 };
-
-const MIN_SHAPE_SIZE = 20;
-
-type ResizeHandleId = "n" | "s" | "e" | "w" | "nw" | "ne" | "sw" | "se";
-
-const RESIZE_HANDLES: { id: ResizeHandleId; left: string; top: string; cursor: string }[] = [
-  { id: "nw", left: "0%", top: "0%", cursor: "nwse-resize" },
-  { id: "n", left: "50%", top: "0%", cursor: "ns-resize" },
-  { id: "ne", left: "100%", top: "0%", cursor: "nesw-resize" },
-  { id: "e", left: "100%", top: "50%", cursor: "ew-resize" },
-  { id: "se", left: "100%", top: "100%", cursor: "nwse-resize" },
-  { id: "s", left: "50%", top: "100%", cursor: "ns-resize" },
-  { id: "sw", left: "0%", top: "100%", cursor: "nesw-resize" },
-  { id: "w", left: "0%", top: "50%", cursor: "ew-resize" },
-];
 
 const OCCUPANCY_FULL = 1;
 const OCCUPANCY_CLOSE = 0.5;
@@ -136,44 +127,6 @@ const CapacityTag = styled.div`
   font-size: 9px;
   font-weight: 600;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-`;
-
-const ResizeHandle = styled.div<{ cursor: string }>`
-  position: absolute;
-  width: 9px;
-  height: 9px;
-  transform: translate(-50%, -50%);
-  background: #ffffff;
-  border: 1px solid #374151;
-  border-radius: 2px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-  cursor: ${(p) => p.cursor};
-  z-index: 6;
-`;
-
-// Sized to match the 20px marker DeleteButton (see MapAnnotationLayer.tsx)
-// so rotate/delete handles read as the same "size class" of control.
-const RotateHandle = styled.div`
-  position: absolute;
-  top: -28px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: radial-gradient(circle at 32% 28%, #ffffff 0%, #cbd5e1 55%, #94a3b8 100%);
-  border: 1px solid #64748b;
-  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.7);
-  color: #374151;
-  cursor: grab;
-  z-index: 7;
-
-  &:active {
-    cursor: grabbing;
-  }
 `;
 
 const OccupantNames = styled.div`
@@ -282,102 +235,34 @@ export const LocationShape: React.FC<Props> = ({
     window.addEventListener("mouseup", onUpHandler);
   };
 
-  const handleResizeMouseDown =
-    (handle: ResizeHandleId): React.MouseEventHandler<HTMLDivElement> =>
-    (e) => {
-      e.stopPropagation();
-      if (!onResize) return;
-
-      const startX = e.clientX;
-      const startY = e.clientY;
-      const initial = { x: shape.x, y: shape.y, width, height };
-
-      // The handles visually rotate with the shape (they're children of the
-      // rotated box), but the shape's own width/height/x/y are always
-      // stored in its unrotated local frame. So a screen-space drag delta
-      // has to be rotated by -rotation into that local frame first -
-      // otherwise "east" stops meaning "east" once the shape is turned.
-      const angleRad = (shape.rotation * Math.PI) / 180;
-      const cos = Math.cos(angleRad);
-      const sin = Math.sin(angleRad);
-
-      const onMoveHandler = (ev: MouseEvent) => {
-        const rawDx = (ev.clientX - startX) / scale;
-        const rawDy = (ev.clientY - startY) / scale;
-
-        const dx = rawDx * cos + rawDy * sin;
-        const dy = -rawDx * sin + rawDy * cos;
-
-        let nextX = initial.x;
-        let nextY = initial.y;
-        let nextWidth = initial.width;
-        let nextHeight = initial.height;
-
-        if (handle.includes("e")) {
-          nextWidth = Math.max(MIN_SHAPE_SIZE, initial.width + dx);
-        }
-        if (handle.includes("w")) {
-          nextWidth = Math.max(MIN_SHAPE_SIZE, initial.width - dx);
-          nextX = initial.x + (initial.width - nextWidth);
-        }
-        if (handle.includes("s")) {
-          nextHeight = Math.max(MIN_SHAPE_SIZE, initial.height + dy);
-        }
-        if (handle.includes("n")) {
-          nextHeight = Math.max(MIN_SHAPE_SIZE, initial.height - dy);
-          nextY = initial.y + (initial.height - nextHeight);
-        }
-
-        onResize(shape.id, { x: nextX, y: nextY, width: nextWidth, height: nextHeight });
-      };
-
-      const onUpHandler = () => {
-        window.removeEventListener("mousemove", onMoveHandler);
-        window.removeEventListener("mouseup", onUpHandler);
-      };
-
-      window.addEventListener("mousemove", onMoveHandler);
-      window.addEventListener("mouseup", onUpHandler);
-    };
+  // Any shape that isn't rendered as freeform polygon points (those are
+  // handled entirely by LocationPolygonEditor) shares this exact resize
+  // math: rect, stadium, and a points-less "polygon" shape (e.g. a fresh
+  // Exotic Enclosure) all resize identically, corrected for rotation.
+  const handleResizeMouseDown = createResizeMouseDownHandler({
+    shapeId: shape.id,
+    x: shape.x,
+    y: shape.y,
+    width,
+    height,
+    rotation: shape.rotation,
+    scale,
+    onResize,
+  });
 
   const showResizeHandles =
-    editMode && selected && shape.type === "rect" && !shape.points && !!onResize;
+    editMode &&
+    selected &&
+    !shape.points &&
+    (shape.type === "rect" || shape.type === "stadium" || shape.type === "polygon") &&
+    !!onResize;
 
   const showRotateHandle = editMode && selected && !!rotationToolsEnabled;
 
-  const handleRotateMouseDown: React.MouseEventHandler<HTMLDivElement> = (e) => {
-    e.stopPropagation();
-
-    const shapeEl = (e.currentTarget as HTMLElement).closest(
-      "[data-shape-root]"
-    ) as HTMLElement | null;
-    if (!shapeEl) return;
-
-    const rect = shapeEl.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-
-    // Angle math is scale-invariant, so no /scale correction is needed here
-    // (unlike move/resize, which operate on screen-pixel distances).
-    const angleFrom = (clientX: number, clientY: number) => {
-      const dx = clientX - centerX;
-      const dy = clientY - centerY;
-      return (Math.atan2(dy, dx) * 180) / Math.PI + 90;
-    };
-
-    const onMoveHandler = (ev: MouseEvent) => {
-      const angle = angleFrom(ev.clientX, ev.clientY);
-      onRotate(shape.id, Math.round(angle / 45) * 45);
-    };
-
-    const onUpHandler = () => {
-      window.removeEventListener("mousemove", onMoveHandler);
-      window.removeEventListener("mouseup", onUpHandler);
-    };
-
-    window.addEventListener("mousemove", onMoveHandler);
-    window.addEventListener("mouseup", onUpHandler);
-  };
+  const handleRotateMouseDown = createRotateMouseDownHandler({
+    shapeId: shape.id,
+    onRotate,
+  });
 
   return (
     <ShapeBox
@@ -414,8 +299,9 @@ export const LocationShape: React.FC<Props> = ({
         </svg>
       )}
 
-      {/* ⭐ RECTANGLE */}
-      {shape.type === "rect" && !shape.points && (
+      {/* ⭐ RECTANGLE (also the fallback box for a "polygon"-typed shape,
+          e.g. an Exotic Enclosure, before it has real freeform points) */}
+      {(shape.type === "rect" || shape.type === "polygon") && !shape.points && (
         <div
           style={{
             position: "absolute",
@@ -457,10 +343,15 @@ export const LocationShape: React.FC<Props> = ({
           viewBox={`0 0 ${width} ${height}`}
           style={{ position: "absolute", inset: 0 }}
         >
+          {/* rx rounds the corners INTO the rect's own box rather than
+              extending past it, so the rect must span the full width/height
+              for the pill to fill its bounding box - insetting x/width by
+              height/2 (as this used to) left a gap on both ends and could
+              go negative once height caught up to width during a resize. */}
           <rect
-            x={height / 2}
+            x={0}
             y={0}
-            width={width - height}
+            width={width}
             height={height}
             fill={categoryColors.base}
             stroke={borderColor}
@@ -508,39 +399,12 @@ export const LocationShape: React.FC<Props> = ({
         )}
       </NameTagWrap>
 
-      {/* ⭐ RESIZE HANDLES (plain rectangles only, while selected + editing) */}
-      {showResizeHandles &&
-        RESIZE_HANDLES.map(({ id, left, top, cursor }) => (
-          <ResizeHandle
-            key={id}
-            cursor={cursor}
-            style={{ left, top }}
-            onMouseDown={handleResizeMouseDown(id)}
-          />
-        ))}
+      {/* ⭐ RESIZE HANDLES (rect, stadium, and points-less polygon shapes,
+          while selected + editing - shared with LocationPolygonEditor) */}
+      {showResizeHandles && <ResizeHandlesOverlay onHandleMouseDown={handleResizeMouseDown} />}
 
       {/* ⭐ ROTATE HANDLE (only while Rotation Tools is enabled) */}
-      {showRotateHandle && (
-        <RotateHandle onMouseDown={handleRotateMouseDown} title="Drag to rotate">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M3 12a9 9 0 1 0 3.5-7.1"
-              stroke="currentColor"
-              strokeWidth="2.4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <polyline
-              points="3 3 3.5 8.9 9.5 8.4"
-              stroke="currentColor"
-              strokeWidth="2.4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              fill="none"
-            />
-          </svg>
-        </RotateHandle>
-      )}
+      {showRotateHandle && <ShapeRotateControl onMouseDown={handleRotateMouseDown} />}
     </ShapeBox>
   );
 };

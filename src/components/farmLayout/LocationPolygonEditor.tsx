@@ -1,6 +1,13 @@
 import React from "react";
 import styled from "@emotion/styled";
-import { FarmShape } from "../../store/farmLayout/farmLayoutTypes";
+import { FarmShape, Point } from "../../store/farmLayout/farmLayoutTypes";
+import {
+  computeResizedBox,
+  createRotateMouseDownHandler,
+  ResizeHandleId,
+  ResizeHandlesOverlay,
+  ShapeRotateControl,
+} from "./shapeControls";
 
 interface Props {
   shape: FarmShape;
@@ -30,31 +37,6 @@ const VertexHandle = styled.div`
   border: 1px solid #374151;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
   cursor: pointer;
-`;
-
-// Sized to match the 20px marker DeleteButton (see MapAnnotationLayer.tsx)
-// so rotate/delete handles read as the same "size class" of control.
-const RotateHandle = styled.div`
-  position: absolute;
-  top: -28px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: radial-gradient(circle at 32% 28%, #ffffff 0%, #cbd5e1 55%, #94a3b8 100%);
-  border: 1px solid #64748b;
-  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.7);
-  color: #374151;
-  cursor: grab;
-  z-index: 7;
-
-  &:active {
-    cursor: grabbing;
-  }
 `;
 
 const recomputeBounds = (points: { x: number; y: number }[]) => {
@@ -253,37 +235,59 @@ export const LocationPolygonEditor: React.FC<Props> = ({
 
   const showRotateHandle = editMode && selected && !!rotationToolsEnabled;
 
-  const handleRotateMouseDown: React.MouseEventHandler<HTMLDivElement> = (e) => {
-    e.stopPropagation();
+  const handleRotateMouseDown = createRotateMouseDownHandler({
+    shapeId: shape.id,
+    onRotate,
+  });
 
-    const shapeEl = (e.currentTarget as HTMLElement).closest(
-      "[data-shape-root]"
-    ) as HTMLElement | null;
-    if (!shapeEl) return;
+  // Bounding-box resize for freeform shapes (e.g. the Aviary octagon, or any
+  // shape after "Freeform Edit"): every vertex keeps its fractional position
+  // within the box, so dragging a corner/edge handle scales the whole
+  // outline the same way rect/stadium resizing does, on top of - not
+  // instead of - per-vertex dragging.
+  const showResizeHandles = editMode && selected && !!shape.points && !!onResize;
 
-    const rect = shapeEl.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
+  const handleBoxResizeMouseDown =
+    (handle: ResizeHandleId): React.MouseEventHandler<HTMLDivElement> =>
+    (e) => {
+      e.stopPropagation();
+      if (!onResize || !shape.points) return;
 
-    const angleFrom = (clientX: number, clientY: number) => {
-      const dx = clientX - centerX;
-      const dy = clientY - centerY;
-      return (Math.atan2(dy, dx) * 180) / Math.PI + 90;
+      const startX = e.clientX;
+      const startY = e.clientY;
+      const initialBox = { x: shape.x, y: shape.y, width, height };
+      const initialPoints = shape.points.map((p) => ({ ...p }));
+
+      const angleRad = (shape.rotation * Math.PI) / 180;
+      const cos = Math.cos(angleRad);
+      const sin = Math.sin(angleRad);
+
+      const onMoveHandler = (ev: MouseEvent) => {
+        const rawDx = (ev.clientX - startX) / scale;
+        const rawDy = (ev.clientY - startY) / scale;
+
+        const box = computeResizedBox(handle, initialBox, cos, sin, rawDx, rawDy);
+
+        const newPoints: Point[] = initialPoints.map((p) => {
+          const fracX = initialBox.width === 0 ? 0 : (p.x - initialBox.x) / initialBox.width;
+          const fracY = initialBox.height === 0 ? 0 : (p.y - initialBox.y) / initialBox.height;
+          return {
+            x: box.x + fracX * box.width,
+            y: box.y + fracY * box.height,
+          };
+        });
+
+        onResize(shape.id, { ...box, points: newPoints });
+      };
+
+      const onUpHandler = () => {
+        window.removeEventListener("mousemove", onMoveHandler);
+        window.removeEventListener("mouseup", onUpHandler);
+      };
+
+      window.addEventListener("mousemove", onMoveHandler);
+      window.addEventListener("mouseup", onUpHandler);
     };
-
-    const onMoveHandler = (ev: MouseEvent) => {
-      const angle = angleFrom(ev.clientX, ev.clientY);
-      onRotate(shape.id, Math.round(angle / 45) * 45);
-    };
-
-    const onUpHandler = () => {
-      window.removeEventListener("mousemove", onMoveHandler);
-      window.removeEventListener("mouseup", onUpHandler);
-    };
-
-    window.addEventListener("mousemove", onMoveHandler);
-    window.addEventListener("mouseup", onUpHandler);
-  };
 
   return (
     <PolygonBox
@@ -334,27 +338,12 @@ export const LocationPolygonEditor: React.FC<Props> = ({
           />
         ))}
 
-      {showRotateHandle && (
-        <RotateHandle onMouseDown={handleRotateMouseDown} title="Drag to rotate">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M3 12a9 9 0 1 0 3.5-7.1"
-              stroke="currentColor"
-              strokeWidth="2.4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <polyline
-              points="3 3 3.5 8.9 9.5 8.4"
-              stroke="currentColor"
-              strokeWidth="2.4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              fill="none"
-            />
-          </svg>
-        </RotateHandle>
-      )}
+      {/* Bounding-box resize handles - same shared control as
+          rect/stadium shapes, layered on top of the freeform vertex
+          handles above. */}
+      {showResizeHandles && <ResizeHandlesOverlay onHandleMouseDown={handleBoxResizeMouseDown} />}
+
+      {showRotateHandle && <ShapeRotateControl onMouseDown={handleRotateMouseDown} />}
     </PolygonBox>
   );
 };
