@@ -31,10 +31,13 @@ import  AnimalAssignPicker  from "../shared/AnimalAssignPicker";
 
 // Logical design space shapes/annotations are positioned in. The canvas is
 // scaled to fit the available window via CSS transform (see `scale` state
-// below) rather than ever changing this coordinate system.
-const CANVAS_WIDTH = 1200;
-const CANVAS_HEIGHT = 800;
-const MIN_SCALE = 0.4;
+// below) rather than ever changing this coordinate system. Sized well past
+// a single screen's worth of room (editing only happens on desktop, see
+// useCanEditLayout) so there's real room to lay out a whole farm; view mode
+// uses this same fixed space, just scaled smaller to fit, so nothing built
+// near its edges ends up somewhere a viewer's device can't reach.
+const CANVAS_WIDTH = 1800;
+const CANVAS_HEIGHT = 1100;
 // Kept in sync with MapPane's CSS padding below, so the fit-to-window scale
 // calculation always leaves a real, visible margin of pane background around
 // the canvas instead of letting the canvas grow to cover it edge-to-edge.
@@ -269,8 +272,13 @@ export const FarmLayoutBuilder: React.FC = () => {
     // to edge and hide the pane background.
     const updateScale = (width: number, height: number) => {
       if (width <= 0 || height <= 0) return;
+      // No lower clamp: on a small phone the "true fit" scale can dip below
+      // what used to be the 0.4 floor, but forcing it back up there made the
+      // canvas wider than the screen and silently cut off whatever fell
+      // outside it. Always fitting fully - however small - is what actually
+      // keeps the whole map reachable on every device.
       const nextScale = Math.min(width / CANVAS_WIDTH, height / CANVAS_HEIGHT);
-      setScale(Math.max(nextScale, MIN_SCALE));
+      setScale(nextScale);
     };
 
     // clientWidth/clientHeight include padding, unlike ResizeObserver's
