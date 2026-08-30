@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useDemoAuth } from "@/contexts/DemoAuthContext";
+import { useDemoAuth, type DemoUserRole } from "@/contexts/DemoAuthContext";
 
 export const DemoRoleRouter: React.FC = () => {
   const { role } = useParams();
@@ -10,11 +10,10 @@ export const DemoRoleRouter: React.FC = () => {
   useEffect(() => {
     if (!role) return;
 
-    // Convert URL role to valid type
-    const validRoles = ["manager", "staff", "client"] as const;
+    const validRoles: DemoUserRole[] = ["manager", "staff", "client"];
 
-    if (validRoles.includes(role as any)) {
-      loginAs(role as any);
+    if (validRoles.includes(role as DemoUserRole)) {
+      loginAs(role as DemoUserRole);
 
       // Redirect to the correct dashboard
       navigate(`/demo/${role}/dashboard`, { replace: true });
@@ -23,5 +22,9 @@ export const DemoRoleRouter: React.FC = () => {
     }
   }, [role, loginAs, navigate]);
 
-  return <div className="p-8">Loading demo…</div>;
+  return (
+    <div className="p-8">
+      <p className="wood-text-box">Loading demo…</p>
+    </div>
+  );
 };

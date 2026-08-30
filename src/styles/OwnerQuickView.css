@@ -1,0 +1,43 @@
+.emergency-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 9998;
+}
+
+.emergency-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  max-height: 90vh;
+  background: #ffffff;
+  z-index: 9999;
+  padding: 2rem 1.5rem;
+  box-shadow: 0 -6px 20px rgba(0,0,0,0.25);
+  border-radius: 20px 20px 0 0;
+  overflow-y: auto;
+  transition: transform 0.25s ease-out;
+}
+
+.animate-slide-up {
+  transform: translateY(0);
+}
+
+.close-btn {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  font-size: 28px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #444;
+}
+
+.emergency-header {
+  color: #dc2626;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}

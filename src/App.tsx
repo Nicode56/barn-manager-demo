@@ -1,90 +1,108 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { ThemeProvider } from "@/components/theme-provider";
-import { LanguageProvider } from "@/contexts/LanguageContext";
-import { AppProvider } from "@/contexts/AppContext";
-import { Toaster } from "@/components/ui/sonner";
-import { Navigation } from "@/components/Navigation";
+import { DemoAuthProvider, type DemoUserRole } from "./contexts/DemoAuthContext";
+import { LoadingOverlay } from "./components/LoadingOverlay";
+import { Navigation } from "./components/Navigation";
+import { Toaster } from "sonner";
 
 // Demo pages (you'll implement these as simple, click-through UIs)
-import { DemoHome } from "@/pages/demo/DemoHome"; // corkboard-style main page
-import { ManagerDashboard } from "@/pages/demo/ManagerDashboard";
-import { StaffDashboard } from "@/pages/demo/StaffDashboard";
-import { ClientDashboard } from "@/pages/demo/ClientDashboard";
+import { DemoHome } from "./pages/DemoHome"; // corkboard-style main page
+import { ManagerDashboard } from "./pages/ManagerDashboard";
+import { StaffDashboard } from "./pages/StaffDashboard";
+import { ClientDashboard } from "./pages/ClientDashboard";
 
-import { FarmMapPage } from "@/pages/demo/FarmMapPage";
-import { AnimalListPage } from "@/pages/demo/AnimalListPage";
-import { AnimalDetailPage } from "@/pages/demo/AnimalDetailPage";
-import { HealthSchedulePage } from "@/pages/demo/HealthSchedulePage";
-import { LessonSchedulePage } from "@/pages/demo/LessonSchedulePage";
-import { MaintenanceBoardPage } from "@/pages/demo/MaintenanceBoardPage";
-import { ComingSoonPage } from "@/pages/demo/ComingSoonPage";
+import FarmMapPage from "./pages/FarmMapPage";
+import { AnimalListPage } from "./pages/AnimalListPage";
+import { AnimalDetailPage } from "./pages/AnimalDetailPage";
+import { HealthSchedulePage } from "./pages/HealthSchedulePage";
+import { LessonSchedulePage } from "./pages/LessonSchedulePage";
+import { MaintenanceBoardPage } from "./pages/MaintenanceBoardPage";
+import { AnimalMaintenancePage } from "./pages/AnimalMaintenancePage";
+import { ComingSoonPage } from "./pages/ComingSoonPage";
+import { BillingPage } from "./pages/BillingPage";
+import { MessagingPage } from "./pages/MessagingPage";
+import { NotificationsPage } from "./pages/NotificationsPage";
+import { FeedOrderPage } from "./pages/FeedOrderPage";
+import  BarnPage  from "./pages/BarnPage";
 
-import { NotFound } from "@/pages/NotFound";
+import { NotFound } from "./pages/NotFound";
 
 import "./App.css";
 import { DemoRoleRouter } from "./pages/demo/DemoRoleRouter";
+import { Provider } from "react-redux";
+import { store } from "./store/store";
 
-export type UserRole = "barn_manager" | "barn_staff" | "client";
+export type UserRole = DemoUserRole;
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="light" storageKey="barn-manager-theme">
-      <LanguageProvider>
-        <AppProvider>
-          <Router>
-            <div className="min-h-screen bg-background western-theme">
-              <Navigation />
+    <DemoAuthProvider>
+      <Provider store={store}>
+        <LoadingOverlay />
 
-                <Route path="/demo/:role" element={<DemoRoleRouter />} />
-                
-                {/* Role-specific dashboards */}
-                <Route path="/demo/manager/dashboard" element={<ManagerDashboard />} />
-                <Route path="/demo/staff/dashboard" element={<StaffDashboard />} />
-                <Route path="/demo/client/dashboard" element={<ClientDashboard />} />
+        <Router>
+          <div className="min-h-screen bg-background western-theme">
+            <Navigation />
 
+            <div className="app-content">
+            <Routes>
+              <Route path="/" element={<DemoHome />} />
+              <Route path="/demo/:role" element={<DemoRoleRouter />} />
 
-                {/* Shared core features */}
-                {/* Low feed alerts, animal list, client profiles linked to horses */}
-                <Route path="/animals" element={<AnimalListPage />} />
-                <Route path="/animals/:animalId" element={<AnimalDetailPage />} />
+              {/* Role-specific dashboards */}
+              <Route path="/demo/manager/dashboard" element={<ManagerDashboard />} />
+              <Route path="/demo/staff/dashboard" element={<StaffDashboard />} />
+              <Route path="/demo/client/dashboard" element={<ClientDashboard />} />
 
-                {/* Health & maintenance scheduling (vet, dentist, farrier, etc.) */}
-                <Route path="/health-schedule" element={<HealthSchedulePage />} />
+              {/* Shared core features */}
+              {/* Low feed alerts, animal list, client profiles linked to horses */}
+              <Route path="/animals" element={<AnimalListPage />} />
+              <Route path="/animals/:animalId" element={<AnimalDetailPage />} />
 
-                {/* Farm mapping: pastures, stalls, labels */}
-                <Route path="/farm-map" element={<FarmMapPage />} />
+              {/* Health & maintenance scheduling (vet, dentist, farrier, etc.) */}
+              <Route path="/health-schedule" element={<HealthSchedulePage />} />
 
-                {/* Maintenance orders: create, schedule, mark complete, client notifications */}
-                <Route path="/maintenance" element={<MaintenanceBoardPage />} />
+              {/* Farm mapping: pastures, stalls, labels */}
+              <Route path="/farm-map" element={<FarmMapPage />} />
+              <Route path="/barns/:barnId" element={<BarnPage />} />
 
-                {/* Lesson scheduling: time slots, horse selection, notes */}
-                <Route path="/lessons" element={<LessonSchedulePage />} />
+              {/* Animal-specific maintenance (farrier, vet, dental, owner relay notes) */}
+              <Route path="/animal-maintenance" element={<AnimalMaintenancePage />} />
 
-                {/* “Coming soon” complex features (QuickBooks, direct messaging, etc.) */}
-                <Route
-                  path="/coming-soon"
-                  element={
-                    <ComingSoonPage
-                      features={[
-                        "QuickBooks integration for automated invoicing and accounting",
-                        "Direct messaging between managers, staff, and clients",
-                        "In-app notifications and chat channels",
-                      ]}
-                    />
-                  }
-                />
+              {/* Maintenance orders: create, schedule, mark complete, client notifications */}
+              <Route path="/maintenance" element={<MaintenanceBoardPage />} />
 
-                {/* 404 */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              {/* Lesson scheduling: time slots, horse selection, notes */}
+              <Route path="/lessons" element={<LessonSchedulePage />} />
+              {/* Advanced features (mocked for demo) */}
+              <Route path="/billing" element={<BillingPage />} />
+              <Route path="/messaging" element={<MessagingPage />} />
+              <Route path="/notifications" element={<NotificationsPage />} />
+              <Route path="/feed-order" element={<FeedOrderPage />} />
+              {/* “Coming soon” complex features (QuickBooks, direct messaging, etc.) */}
+              <Route
+                path="/coming-soon"
+                element={
+                  <ComingSoonPage
+                    features={[
+                      "QuickBooks integration for automated invoicing and accounting",
+                      "Direct messaging between managers, staff, and clients",
+                      "In-app notifications and chat channels",
+                    ]}
+                  />
+                }
+              />
+
+              {/* 404 */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
             </div>
+          </div>
 
-            <Toaster />
-          </Router>
-        </AppProvider>
-      </LanguageProvider>
-    </ThemeProvider>
+          <Toaster />
+        </Router>
+      </Provider>
+    </DemoAuthProvider>
   );
 }
 
