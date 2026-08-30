@@ -180,7 +180,7 @@ export const MaintenanceBoardPage: React.FC = () => {
 
                     <div className="flex gap-2 mt-3">
                       <button
-                        className="px-3 py-1 bg-blue-700 hover:bg-blue-800 text-white rounded-md shadow-sm"
+                        className="px-3 py-1 bg-blue-700 hover:bg-blue-800 text-[#422f22] rounded-md shadow-sm"
                         onClick={e => {
                           e.stopPropagation();
                           openEditModal(task);
@@ -250,7 +250,7 @@ export const MaintenanceBoardPage: React.FC = () => {
 
                     <div className="flex gap-2 mt-3">
                       <button
-                        className="px-3 py-1 bg-blue-700 hover:bg-blue-800 text-white rounded-md shadow-sm"
+                        className="px-3 py-1 bg-blue-700 hover:bg-blue-800 text-[#422f22] rounded-md shadow-sm"
                         onClick={e => {
                           e.stopPropagation();
                           openEditModal(task);
@@ -385,7 +385,7 @@ export const MaintenanceBoardPage: React.FC = () => {
 
               <button
                 onClick={handleAddTask}
-                className="px-4 py-2 bg-amber-700 hover:bg-amber-800 text-white rounded-md"
+                className="px-4 py-2 bg-amber-700 hover:bg-amber-800 text-[#422f22] rounded-md"
               >
                 Add Maintenance Task
               </button>
@@ -445,7 +445,7 @@ export const MaintenanceBoardPage: React.FC = () => {
 
               <button
                 onClick={handleSaveEdit}
-                className="px-4 py-2 bg-green-700 hover:bg-green-800 text-white font-semibold rounded-md shadow-md"
+                className="px-4 py-2 bg-green-700 hover:bg-green-800 text-[#422f22] font-semibold rounded-md shadow-md"
               >
                 Save Changes
               </button>

@@ -101,7 +101,7 @@ export const StallDetailModal: React.FC = () => {
         {/* Footer */}
         <div className="px-4 py-3 border-t border-neutral-300 flex justify-end">
           <button
-            className="px-3 py-1 text-xs rounded bg-amber-600 text-white hover:bg-amber-700"
+            className="px-3 py-1 text-xs rounded bg-amber-600 text-[#422f22] hover:bg-amber-700"
             onClick={() => dispatch(closeStallModal())}
           >
             Done

@@ -143,7 +143,7 @@ export const MessagingPage: React.FC = () => {
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
                 disabled
               />
-              <button className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm opacity-50">
+              <button className="px-4 py-2 bg-blue-500 text-[#422f22] rounded-lg text-sm opacity-50">
                 Send
               </button>
             </div>

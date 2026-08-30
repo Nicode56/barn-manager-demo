@@ -156,7 +156,7 @@ export const StaffDashboard: React.FC = () => {
               setNewShiftNote("");
             }
           }}
-          className="px-4 py-2 bg-amber-700 hover:bg-amber-800 text-white rounded-md"
+          className="px-4 py-2 bg-amber-700 hover:bg-amber-800 text-[#422f22] rounded-md"
         >
           Add Note
         </button>
