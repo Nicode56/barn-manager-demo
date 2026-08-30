@@ -13,7 +13,7 @@ export const DemoHome: React.FC = () => {
   return (
     <div className="demo-home">
       <section className="hero-panel">
-        <h1 className="hero-title">Barn Manager Demo</h1>
+        <h1 className="hero-title">Farm Flow Demo</h1>
         <p className="hero-subtitle">{message}</p>
 
         <div className="highlight-grid">
