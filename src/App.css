@@ -719,7 +719,7 @@ button:active {
 .new-schedule-btn {
   background: linear-gradient(180deg, #ffa602 0%, #dd8500 100%);
   border: 1px solid rgba(56, 128, 56, 0.3);
-  color: #ffffff;
+  color: #422f22;
 }
 
 .new-schedule-btn:hover {
