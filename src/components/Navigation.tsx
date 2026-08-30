@@ -14,7 +14,7 @@ export const Navigation: React.FC = () => {
   return (
     <nav className="nav-bar">
       <Link to="/" className="brand">
-        Barn Manager Demo
+        Farm Flow
       </Link>
 
       <div className="nav-links">
