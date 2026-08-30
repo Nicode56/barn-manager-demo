@@ -36,7 +36,7 @@ import  AnimalAssignPicker  from "../shared/AnimalAssignPicker";
 // useCanEditLayout) so there's real room to lay out a whole farm; view mode
 // uses this same fixed space, just scaled smaller to fit, so nothing built
 // near its edges ends up somewhere a viewer's device can't reach.
-const CANVAS_WIDTH = 1800;
+const CANVAS_WIDTH = 2200;
 const CANVAS_HEIGHT = 1100;
 // Kept in sync with MapPane's CSS padding below, so the fit-to-window scale
 // calculation always leaves a real, visible margin of pane background around
