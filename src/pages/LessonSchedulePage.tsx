@@ -29,7 +29,7 @@ export const LessonSchedulePage: React.FC = () => {
             <div className="ml-auto">
               {slot.blocked ? null : slot.available ? (
                 <button
-                  className="text-blue-600 underline"
+                  className="text-blue-600"
                   onClick={() => {
                     dispatch(bookSlotOptimistic(slot.id));
                     dispatch(asyncBookSlot(slot.id));
@@ -40,7 +40,7 @@ export const LessonSchedulePage: React.FC = () => {
                 </button>
               ) : (
                 <button
-                  className="text-red-600 underline"
+                  className="text-red-600"
                   onClick={() => {
                     dispatch(cancelSlotOptimistic(slot.id));
                     dispatch(asyncCancelSlot(slot.id));
