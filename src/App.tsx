@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { DemoAuthProvider, type DemoUserRole } from "./contexts/DemoAuthContext";
 import { LoadingOverlay } from "./components/LoadingOverlay";
 import { Navigation } from "./components/Navigation";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Toaster } from "sonner";
 
 // Demo pages (you'll implement these as simple, click-through UIs)
@@ -50,9 +51,30 @@ function App() {
               <Route path="/demo/:role" element={<DemoRoleRouter />} />
 
               {/* Role-specific dashboards */}
-              <Route path="/demo/manager/dashboard" element={<ManagerDashboard />} />
-              <Route path="/demo/staff/dashboard" element={<StaffDashboard />} />
-              <Route path="/demo/client/dashboard" element={<ClientDashboard />} />
+              <Route
+                path="/demo/manager/dashboard"
+                element={
+                  <ProtectedRoute allowedRole="manager">
+                    <ManagerDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/demo/staff/dashboard"
+                element={
+                  <ProtectedRoute allowedRole="staff">
+                    <StaffDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/demo/client/dashboard"
+                element={
+                  <ProtectedRoute allowedRole="client">
+                    <ClientDashboard />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Shared core features */}
               {/* Low feed alerts, animal list, client profiles linked to horses */}

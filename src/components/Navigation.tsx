@@ -71,8 +71,8 @@ export const Navigation: React.FC = () => {
         )}
 
         {!role && (
-          <Link to="/demo/manager/dashboard" className={navClass("/demo/manager")}>
-            Demo Dashboard
+          <Link to="/" className={navClass("/")}>
+            Choose a Demo Role
           </Link>
         )}
 
