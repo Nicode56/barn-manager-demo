@@ -11,6 +11,7 @@ import {
 } from "@/store/healthSlice";
 import { HealthAppointmentType, HealthEvent } from "@/demo-data/health";
 import { toast } from "sonner";
+import { useDemoAuth } from "@/contexts/DemoAuthContext";
 
 const APPOINTMENT_TYPES: { type: HealthAppointmentType; label: string }[] = [
   { type: "Vet check", label: "Add Vet Appointment" },
@@ -21,9 +22,17 @@ const APPOINTMENT_TYPES: { type: HealthAppointmentType; label: string }[] = [
 
 export const HealthSchedulePage: React.FC = () => {
   const events = useSelector((state: RootState) => state.health.events);
-  const animals = useSelector((state: RootState) => state.farm.animals);
+  const allAnimals = useSelector((state: RootState) => state.farm.animals);
   const isLoading = useSelector((state: RootState) => state.loading.activeRequests > 0);
   const dispatch = useDispatch<AppDispatch>();
+  const { user } = useDemoAuth();
+
+  // Only managers can schedule appointments for any animal on the farm;
+  // staff and clients can only schedule for the animal(s) they own.
+  const animals =
+    user?.role === "manager"
+      ? allAnimals
+      : allAnimals.filter(a => a.ownerId === user?.clientId);
 
   const [addingType, setAddingType] = useState<HealthAppointmentType | null>(null);
   const [date, setDate] = useState("");

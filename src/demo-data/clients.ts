@@ -4,4 +4,5 @@ export const clients = [
   { id: 3, name: "Ava Brooks", email: "ava@stables.com", phone: "(555) 345-6789", emergency: "(555) 777-6666" },
   { id: 4, name: "Noah Reed", email: "noah@horsestudio.com", phone: "(555) 456-7890", emergency: "(555) 666-5555" },
   { id: 5, name: "Mia James", email: "mia@barnway.com", phone: "(555) 567-0123", emergency: "(555) 444-3333" },
+  { id: 6, name: "Sam Rivera", email: "sam@barnstaff.com", phone: "(555) 678-1234", emergency: "(555) 333-2222" },
 ];

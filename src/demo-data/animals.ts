@@ -550,4 +550,38 @@ supplements: [
 
   });
 
+  addAnimal({
+    name: "Copper",
+    breed: "Sorrel",
+    age: 10,
+    image: "/demo-horses/Horse 1.png",
+    description: "Sorrel horse with a flaxen mane, boarded by a staff member.",
+    ownerId: 6,
+    pasture: "Pasture C",
+    stall: "Stall 9",
+    status: "Active",
+    notes: "Staff member's personal horse, boarded on-site.",
+    temperament: "Easygoing and low-maintenance.",
+    precautions: "None known.",
+    health: {
+      vet: "2026-08-20",
+      farrier: "2026-07-15",
+      dentist: "2026-11-25",
+      vaccinations: "2026-09-25"
+    },
+    feed: {
+      level: 50,
+      low: false,
+      type: "Sweet Feed",
+      brand: "Golden Meadow"
+    },
+    supplements: [
+      { name: "Magnesium", level: 2, low: false },
+      { name: "Electrolytes", level: 1, low: false }
+    ],
+    alerts: {
+      knownIssues: "None",
+      contactUnless: "Lameness or any sudden change in behavior"
+    }
+  });
 
