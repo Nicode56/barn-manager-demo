@@ -109,7 +109,9 @@ function App() {
                     features={[
                       "QuickBooks integration for automated invoicing and accounting",
                       "Direct messaging between managers, staff, and clients",
-                      "In-app notifications and chat channels",
+                      "In-app notifications",
+                      "Client form accessibility",
+
                     ]}
                   />
                 }
