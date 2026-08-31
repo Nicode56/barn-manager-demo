@@ -1,7 +1,19 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { lessonSlots } from "@/demo-data/lessons";
+import { lessonSlots, LessonSlot } from "@/demo-data/lessons";
 import { startLoading, stopLoading } from "./loadingSlice";
 import { randomDelay } from "@/utils/randomDelay";
+
+// The single source of truth for whether a slot counts as an "available
+// lesson": a private lesson is available until someone books it, while a
+// group lesson stays available until it hits capacity - a partially-booked
+// group session is still open to more riders, unlike a private one.
+export function isLessonAvailable(slot: LessonSlot): boolean {
+  if (slot.blocked) return false;
+  if (slot.format === "group") {
+    return (slot.bookedCount ?? 0) < (slot.capacity ?? 0);
+  }
+  return slot.available;
+}
 
 export const asyncBookSlot = createAsyncThunk(
   "lessons/asyncBookSlot",
@@ -41,6 +53,29 @@ export const asyncUnblockSlot = createAsyncThunk(
   }
 );
 
+function applyBookSlot(state: { slots: LessonSlot[] }, slotId: string) {
+  const slot = state.slots.find(s => s.id === slotId);
+  if (!slot) return;
+  if (slot.format === "group") {
+    const capacity = slot.capacity ?? 0;
+    slot.bookedCount = Math.min((slot.bookedCount ?? 0) + 1, capacity);
+    slot.available = slot.bookedCount < capacity;
+  } else {
+    slot.available = false;
+  }
+}
+
+function applyCancelSlot(state: { slots: LessonSlot[] }, slotId: string) {
+  const slot = state.slots.find(s => s.id === slotId);
+  if (!slot) return;
+  if (slot.format === "group") {
+    slot.bookedCount = Math.max((slot.bookedCount ?? 0) - 1, 0);
+    slot.available = true;
+  } else {
+    slot.available = true;
+  }
+}
+
 const lessonSlice = createSlice({
   name: "lessons",
   initialState: {
@@ -48,12 +83,10 @@ const lessonSlice = createSlice({
   },
   reducers: {
     bookSlotOptimistic(state, action) {
-      const slot = state.slots.find(s => s.id === action.payload);
-      if (slot) slot.available = false;
+      applyBookSlot(state, action.payload);
     },
     cancelSlotOptimistic(state, action) {
-      const slot = state.slots.find(s => s.id === action.payload);
-      if (slot) slot.available = true;
+      applyCancelSlot(state, action.payload);
     },
     blockSlotOptimistic(state, action: { payload: { id: string; reason: string } }) {
       const slot = state.slots.find(s => s.id === action.payload.id);
@@ -75,12 +108,10 @@ const lessonSlice = createSlice({
   extraReducers: builder => {
     builder
       .addCase(asyncBookSlot.fulfilled, (state, action) => {
-        const slot = state.slots.find(s => s.id === action.payload);
-        if (slot) slot.available = false;
+        applyBookSlot(state, action.payload);
       })
       .addCase(asyncCancelSlot.fulfilled, (state, action) => {
-        const slot = state.slots.find(s => s.id === action.payload);
-        if (slot) slot.available = true;
+        applyCancelSlot(state, action.payload);
       })
       .addCase(asyncBlockSlot.fulfilled, (state, action) => {
         const slot = state.slots.find(s => s.id === action.payload.id);

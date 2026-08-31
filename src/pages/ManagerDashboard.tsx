@@ -16,6 +16,7 @@ import {
   unblockSlotOptimistic,
   asyncBlockSlot,
   asyncUnblockSlot,
+  isLessonAvailable,
 } from "@/store/lessonSlice";
 import { confirmAppointment, isAppointmentPast, groupAppointments } from "@/store/healthSlice";
 import { toast } from "sonner";
@@ -537,55 +538,68 @@ export const ManagerDashboard: React.FC = () => {
         </p>
 
         <ul className="space-y-3">
-          {lessonSlots.map(slot => (
-            <li key={slot.id} className="request-item flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <strong>{slot.time}</strong>{" "}
-                {slot.blocked ? (
-                  <span className="status">
-                    Blocked{slot.blockReason ? ` — ${slot.blockReason}` : ""}
-                  </span>
-                ) : slot.available ? (
-                  <span className="status-complete">Open</span>
-                ) : (
-                  <span className="status">Booked — {slot.client} on {slot.horse}</span>
-                )}
-              </div>
+          {lessonSlots.map(slot => {
+            const isGroup = slot.format === "group";
+            const bookedCount = slot.bookedCount ?? 0;
+            const capacity = slot.capacity ?? 0;
+            // Only offer Block on a slot with zero bookings - a group lesson
+            // that already has riders in it shouldn't be blocked out from here.
+            const isEmpty = !slot.blocked && (isGroup ? bookedCount === 0 : slot.available);
 
-              {slot.available && !slot.blocked && (
-                <div className="flex items-center gap-2">
-                  <select
-                    value={blockReasons[slot.id] ?? "Maintenance"}
-                    onChange={(e) =>
-                      setBlockReasons(prev => ({ ...prev, [slot.id]: e.target.value }))
-                    }
-                    className="rounded-md border border-amber-300 p-2 text-sm text-gray-900"
-                  >
-                    <option value="Maintenance">Maintenance</option>
-                    <option value="Personal Use">Personal Use</option>
-                    <option value="Other">Other</option>
-                  </select>
+            return (
+              <li key={slot.id} className="request-item flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <strong>{slot.time}</strong>{" "}
+                  {slot.blocked ? (
+                    <span className="status">
+                      Blocked{slot.blockReason ? ` — ${slot.blockReason}` : ""}
+                    </span>
+                  ) : isGroup ? (
+                    <span className={isLessonAvailable(slot) ? "status-complete" : "status"}>
+                      {bookedCount}/{capacity} booked (Group){isLessonAvailable(slot) ? "" : " · Full"}
+                    </span>
+                  ) : slot.available ? (
+                    <span className="status-complete">Open</span>
+                  ) : (
+                    <span className="status">Booked — {slot.client} on {slot.horse}</span>
+                  )}
+                </div>
+
+                {isEmpty && (
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={blockReasons[slot.id] ?? "Maintenance"}
+                      onChange={(e) =>
+                        setBlockReasons(prev => ({ ...prev, [slot.id]: e.target.value }))
+                      }
+                      className="rounded-md border border-amber-300 p-2 text-sm text-gray-900"
+                    >
+                      <option value="Maintenance">Maintenance</option>
+                      <option value="Personal Use">Personal Use</option>
+                      <option value="Other">Other</option>
+                    </select>
+                    <button
+                      type="button"
+                      className="alert-btn mark"
+                      onClick={() => handleBlockSlot(slot.id)}
+                    >
+                      Block
+                    </button>
+                  </div>
+                )}
+
+                {slot.blocked && (
                   <button
                     type="button"
-                    className="alert-btn mark"
-                    onClick={() => handleBlockSlot(slot.id)}
+                    className="alert-btn clear"
+                    onClick={() => handleUnblockSlot(slot.id)}
                   >
-                    Block
+                    Unblock
                   </button>
-                </div>
-              )}
-
-              {slot.blocked && (
-                <button
-                  type="button"
-                  className="alert-btn clear"
-                  onClick={() => handleUnblockSlot(slot.id)}
-                >
-                  Unblock
-                </button>
-              )}
-            </li>
-          ))}
+                )}
+              </li>
+            );
+          })}
         </ul>
       </section>
 
