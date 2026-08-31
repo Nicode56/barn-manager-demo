@@ -24,8 +24,8 @@ const CanvasArea = styled.div`
 `;
 
 // Must match MapCanvas dimensions in FarmLayoutBuilder.
-const CANVAS_WIDTH = 1200;
-const CANVAS_HEIGHT = 800;
+const CANVAS_WIDTH = 2200;
+const CANVAS_HEIGHT = 1100;
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
