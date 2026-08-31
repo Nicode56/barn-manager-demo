@@ -1,10 +1,11 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDemoAuth } from "@/contexts/DemoAuthContext";
 
 export const Navigation: React.FC = () => {
   const { user } = useDemoAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const role = user?.role;
 
@@ -13,9 +14,22 @@ export const Navigation: React.FC = () => {
 
   return (
     <nav className="nav-bar">
-      <Link to="/" className="brand">
-        Farm Flow
-      </Link>
+      <div className="nav-left">
+        {location.pathname !== "/" && (
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="nav-link nav-back-btn"
+            aria-label="Go back"
+          >
+            ← Back
+          </button>
+        )}
+
+        <Link to="/" className="brand">
+          Farm Flow
+        </Link>
+      </div>
 
       <div className="nav-links">
         <Link to="/farm-map" className={navClass("/farm-map")}>
