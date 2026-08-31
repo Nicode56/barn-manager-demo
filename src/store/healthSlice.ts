@@ -3,6 +3,7 @@ import { healthEvents, HealthEvent, HealthAppointmentType } from "@/demo-data/he
 import { startLoading, stopLoading } from "./loadingSlice";
 import { randomDelay } from "@/utils/randomDelay";
 import { recordProviderVisit } from "./farmSlice";
+import { addWeeksToDate, addYearsToDate } from "@/utils/dateMath";
 import type { RootState } from "./store";
 
 const PROVIDER_FIELD_BY_TYPE: Record<
@@ -13,6 +14,18 @@ const PROVIDER_FIELD_BY_TYPE: Record<
   "Dental cleaning": "lastDentist",
   "Farrier visit": "lastFarrier",
   "Chiropractor": "lastChiropractor",
+};
+
+// Once a manager confirms a provider actually saw the animal, the next
+// expected appointment is projected forward from that visit date. Farrier
+// visits recur every 6 weeks; vet and dentist visits recur yearly.
+// Chiropractor visits aren't ongoing, so no next date is projected.
+const NEXT_APPOINTMENT_BY_TYPE: Partial<
+  Record<HealthAppointmentType, { field: "vet" | "farrier" | "dentist"; project: (date: string) => string }>
+> = {
+  "Vet check": { field: "vet", project: date => addYearsToDate(date, 1) },
+  "Dental cleaning": { field: "dentist", project: date => addYearsToDate(date, 1) },
+  "Farrier visit": { field: "farrier", project: date => addWeeksToDate(date, 6) },
 };
 
 // An appointment is "past" once its date (and time, if given) has passed -
@@ -89,11 +102,14 @@ export const confirmAppointment = createAsyncThunk(
 
     if (appointment?.animalId != null) {
       const field = PROVIDER_FIELD_BY_TYPE[appointment.type];
+      const next = NEXT_APPOINTMENT_BY_TYPE[appointment.type];
       dispatch(
         recordProviderVisit({
           animalId: appointment.animalId,
           field,
           date: appointment.date,
+          nextField: next?.field,
+          nextDate: next ? next.project(appointment.date) : undefined,
         })
       );
     }

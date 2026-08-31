@@ -167,11 +167,18 @@ export const farmSlice = createSlice({
         animalId: number;
         field: "lastVet" | "lastFarrier" | "lastDentist" | "lastChiropractor";
         date: string;
+        // Chiropractor visits aren't ongoing, so confirming one doesn't
+        // project a next expected appointment - nextField is omitted then.
+        nextField?: "vet" | "farrier" | "dentist";
+        nextDate?: string;
       }>
     ) => {
       const animal = state.animals.find(a => a.id === action.payload.animalId);
       if (!animal) return;
       animal.health[action.payload.field] = action.payload.date;
+      if (action.payload.nextField && action.payload.nextDate) {
+        animal.health[action.payload.nextField] = action.payload.nextDate;
+      }
     },
 
     finalizeOrder: (state) => {
