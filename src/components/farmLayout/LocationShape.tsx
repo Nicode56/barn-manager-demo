@@ -9,6 +9,7 @@ import { useDemoAuth } from "../../contexts/DemoAuthContext";
 import {
   createResizeMouseDownHandler,
   createRotateMouseDownHandler,
+  MIN_SHAPE_SIZE,
   ResizeHandlesOverlay,
   ShapeRotateControl,
 } from "./shapeControls";
@@ -239,7 +240,7 @@ export const LocationShape: React.FC<Props> = ({
   // handled entirely by LocationPolygonEditor) shares this exact resize
   // math: rect, stadium, and a points-less "polygon" shape (e.g. a fresh
   // Exotic Enclosure) all resize identically, corrected for rotation.
-  const handleResizeMouseDown = createResizeMouseDownHandler({
+  const boxResizeMouseDown = createResizeMouseDownHandler({
     shapeId: shape.id,
     x: shape.x,
     y: shape.y,
@@ -250,11 +251,57 @@ export const LocationShape: React.FC<Props> = ({
     onResize,
   });
 
+  // A circle has no meaningful "width handle" vs "height handle" - it's
+  // defined purely by its radius, and stays round regardless of rotation.
+  // So every handle does the same thing: the new radius tracks the
+  // handle's live distance from the shape's own center, in canvas units.
+  // This sidesteps the rotation-correction math entirely (a circle looks
+  // identical at any rotation), unlike the box resize above.
+  const handleCircleResizeMouseDown: React.MouseEventHandler<HTMLDivElement> = (e) => {
+    e.stopPropagation();
+    if (!onResize) return;
+
+    const canvasEl = document.querySelector("[data-canvas-root]") as HTMLElement | null;
+    const canvasRect = canvasEl?.getBoundingClientRect();
+    const offsetX = canvasRect?.left ?? 0;
+    const offsetY = canvasRect?.top ?? 0;
+    const centerX = shape.x + width / 2;
+    const centerY = shape.y + height / 2;
+
+    const onMoveHandler = (ev: MouseEvent) => {
+      const mouseX = (ev.clientX - offsetX) / scale;
+      const mouseY = (ev.clientY - offsetY) / scale;
+      const newR = Math.max(MIN_SHAPE_SIZE / 2, Math.hypot(mouseX - centerX, mouseY - centerY));
+
+      onResize(shape.id, {
+        r: newR,
+        width: newR * 2,
+        height: newR * 2,
+        x: centerX - newR,
+        y: centerY - newR,
+      });
+    };
+
+    const onUpHandler = () => {
+      window.removeEventListener("mousemove", onMoveHandler);
+      window.removeEventListener("mouseup", onUpHandler);
+    };
+
+    window.addEventListener("mousemove", onMoveHandler);
+    window.addEventListener("mouseup", onUpHandler);
+  };
+
+  const handleResizeMouseDown =
+    shape.type === "circle" ? () => handleCircleResizeMouseDown : boxResizeMouseDown;
+
   const showResizeHandles =
     editMode &&
     selected &&
     !shape.points &&
-    (shape.type === "rect" || shape.type === "stadium" || shape.type === "polygon") &&
+    (shape.type === "rect" ||
+      shape.type === "stadium" ||
+      shape.type === "polygon" ||
+      shape.type === "circle") &&
     !!onResize;
 
   const showRotateHandle = editMode && selected && !!rotationToolsEnabled;
@@ -401,7 +448,9 @@ export const LocationShape: React.FC<Props> = ({
 
       {/* ⭐ RESIZE HANDLES (rect, stadium, and points-less polygon shapes,
           while selected + editing - shared with LocationPolygonEditor) */}
-      {showResizeHandles && <ResizeHandlesOverlay onHandleMouseDown={handleResizeMouseDown} />}
+      {showResizeHandles && (
+        <ResizeHandlesOverlay onHandleMouseDown={handleResizeMouseDown} rotation={shape.rotation} />
+      )}
 
       {/* ⭐ ROTATE HANDLE (only while Rotation Tools is enabled) */}
       {showRotateHandle && <ShapeRotateControl onMouseDown={handleRotateMouseDown} />}

@@ -417,7 +417,7 @@ export const MapAnnotationLayer: React.FC<Props> = ({ annotations, editMode, sca
                         top: thicknessHandlePos.y,
                         position: "absolute",
                       }}
-                      onMouseDown={startThicknessDrag(annotation, localStart, localEnd)}
+                      onMouseDown={startThicknessDrag(annotation, start, end)}
                     />
                     <DeleteButton
                       style={{ left: localStart.x - 10, top: localStart.y - 10, right: "auto" }}

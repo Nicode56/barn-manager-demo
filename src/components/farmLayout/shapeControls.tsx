@@ -6,16 +6,44 @@ export const MIN_SHAPE_SIZE = 20;
 
 export type ResizeHandleId = "n" | "s" | "e" | "w" | "nw" | "ne" | "sw" | "se";
 
-export const RESIZE_HANDLES: { id: ResizeHandleId; left: string; top: string; cursor: string }[] = [
-  { id: "nw", left: "0%", top: "0%", cursor: "nwse-resize" },
-  { id: "n", left: "50%", top: "0%", cursor: "ns-resize" },
-  { id: "ne", left: "100%", top: "0%", cursor: "nesw-resize" },
-  { id: "e", left: "100%", top: "50%", cursor: "ew-resize" },
-  { id: "se", left: "100%", top: "100%", cursor: "nwse-resize" },
-  { id: "s", left: "50%", top: "100%", cursor: "ns-resize" },
-  { id: "sw", left: "0%", top: "100%", cursor: "nesw-resize" },
-  { id: "w", left: "0%", top: "50%", cursor: "ew-resize" },
+export const RESIZE_HANDLES: { id: ResizeHandleId; left: string; top: string }[] = [
+  { id: "nw", left: "0%", top: "0%" },
+  { id: "n", left: "50%", top: "0%" },
+  { id: "ne", left: "100%", top: "0%" },
+  { id: "e", left: "100%", top: "50%" },
+  { id: "se", left: "100%", top: "100%" },
+  { id: "s", left: "50%", top: "100%" },
+  { id: "sw", left: "0%", top: "100%" },
+  { id: "w", left: "0%", top: "50%" },
 ];
+
+// Each handle's compass bearing in the shape's own unrotated local frame
+// (clockwise from north, matching CSS `rotate(deg)`). A handle's cursor
+// icon needs to reflect where it actually sits ON SCREEN, not where it
+// started out - once the shape is rotated, a handle drawn at the local
+// "north" position can end up sitting on the shape's visual side, and an
+// unrotated "ns-resize" cursor there would point the wrong way and make
+// dragging it feel backwards. Rotation is always snapped to 45deg
+// increments (see createRotateMouseDownHandler), so bearing + rotation is
+// always an exact multiple of 45 - no rounding needed.
+const HANDLE_BEARINGS: Record<ResizeHandleId, number> = {
+  n: 0,
+  ne: 45,
+  e: 90,
+  se: 135,
+  s: 180,
+  sw: 225,
+  w: 270,
+  nw: 315,
+};
+
+function cursorForHandle(id: ResizeHandleId, rotationDeg: number): string {
+  const bearing = (((HANDLE_BEARINGS[id] + rotationDeg) % 180) + 180) % 180;
+  if (bearing === 45) return "nesw-resize";
+  if (bearing === 90) return "ew-resize";
+  if (bearing === 135) return "nwse-resize";
+  return "ns-resize";
+}
 
 interface Box {
   x: number;
@@ -174,12 +202,13 @@ export const ResizeHandle = styled.div<{ cursor: string }>`
 
 export const ResizeHandlesOverlay: React.FC<{
   onHandleMouseDown: (handle: ResizeHandleId) => React.MouseEventHandler<HTMLDivElement>;
-}> = ({ onHandleMouseDown }) => (
+  rotation?: number;
+}> = ({ onHandleMouseDown, rotation = 0 }) => (
   <>
-    {RESIZE_HANDLES.map(({ id, left, top, cursor }) => (
+    {RESIZE_HANDLES.map(({ id, left, top }) => (
       <ResizeHandle
         key={id}
-        cursor={cursor}
+        cursor={cursorForHandle(id, rotation)}
         style={{ left, top }}
         onMouseDown={onHandleMouseDown(id)}
       />

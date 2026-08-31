@@ -8,7 +8,6 @@ const AUTH_STORAGE_KEY = "demoAuthRole";
 export interface DemoUser {
   name: string;
   role: DemoUserRole;
-  horses: number[];
   // Links a "client" role demo user to their record in demo-data/clients.ts,
   // so animal.ownerId can be checked against the logged-in owner.
   clientId?: number;

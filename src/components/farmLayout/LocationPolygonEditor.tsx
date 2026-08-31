@@ -341,7 +341,9 @@ export const LocationPolygonEditor: React.FC<Props> = ({
       {/* Bounding-box resize handles - same shared control as
           rect/stadium shapes, layered on top of the freeform vertex
           handles above. */}
-      {showResizeHandles && <ResizeHandlesOverlay onHandleMouseDown={handleBoxResizeMouseDown} />}
+      {showResizeHandles && (
+        <ResizeHandlesOverlay onHandleMouseDown={handleBoxResizeMouseDown} rotation={shape.rotation} />
+      )}
 
       {showRotateHandle && <ShapeRotateControl onMouseDown={handleRotateMouseDown} />}
     </PolygonBox>

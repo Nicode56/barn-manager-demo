@@ -339,6 +339,8 @@ export const FarmLayoutBuilder: React.FC = () => {
         ? 260
         : resolvedType === "rect" || resolvedType === "stadium"
         ? 220
+        : resolvedType === "circle"
+        ? 120
         : undefined;
 
     const defaultHeight =
@@ -348,6 +350,8 @@ export const FarmLayoutBuilder: React.FC = () => {
         ? 120
         : resolvedType === "stadium"
         ? 90
+        : resolvedType === "circle"
+        ? 120
         : undefined;
 
     const width = defaultWidth ?? 120;

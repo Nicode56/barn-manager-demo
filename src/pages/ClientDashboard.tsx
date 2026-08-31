@@ -8,7 +8,7 @@ import { healthEvents } from "@/demo-data/health";
 export const ClientDashboard: React.FC = () => {
   const { user } = useDemoAuth();
 
-  const myHorses = animals.filter(a => user?.horses?.includes(a.id));
+  const myHorses = animals.filter(a => a.ownerId === user?.clientId);
   const myLessons = lessonSlots.filter(
     s => s.available || s.client === user?.name,
   );
@@ -22,10 +22,20 @@ export const ClientDashboard: React.FC = () => {
       <ul className="space-y-3 mb-8">
         {myHorses.map(h => (
           <li key={h.id} className="bulletin-item">
-            <strong>{h.name}</strong> — {h.breed}
-            <div className="text-sm text-gray-700">
-              Next vet: {h.health.vet} · Next farrier: {h.health.farrier}
-            </div>
+            <Link to={`/animals/${h.id}`} className="flex items-center gap-4">
+              <img
+                src={h.image}
+                alt={`${h.name} portrait`}
+                className="horse-thumb"
+                loading="lazy"
+              />
+              <div>
+                <strong>{h.name}</strong> — {h.breed}
+                <div className="text-sm text-gray-700">
+                  Next vet: {h.health.vet} · Next farrier: {h.health.farrier}
+                </div>
+              </div>
+            </Link>
           </li>
         ))}
       </ul>
@@ -50,10 +60,6 @@ export const ClientDashboard: React.FC = () => {
           </li>
         ))}
       </ul>
-
-      <Link to="/animals" className="action-card mt-8 inline-block">
-        View horse profiles
-      </Link>
     </div>
   );
 };
