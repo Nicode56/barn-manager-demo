@@ -8,12 +8,16 @@ import {
   asyncCancelSlot,
   isLessonAvailable,
 } from "@/store/lessonSlice";
+import { useDemoAuth } from "@/contexts/DemoAuthContext";
 import { toast } from "sonner";
 
 export const LessonSchedulePage: React.FC = () => {
   const slots = useSelector((state: RootState) => state.lessons.slots);
   const isLoading = useSelector((state: RootState) => state.loading.activeRequests > 0);
+  const animals = useSelector((state: RootState) => state.farm.animals);
   const dispatch = useDispatch<AppDispatch>();
+  const { user } = useDemoAuth();
+  const myHorse = animals.find(a => a.ownerId === user?.clientId)?.name ?? "";
 
   return (
     <div className="p-8">
@@ -47,8 +51,9 @@ export const LessonSchedulePage: React.FC = () => {
                   <button
                     className="text-blue-600"
                     onClick={() => {
-                      dispatch(bookSlotOptimistic(slot.id));
-                      dispatch(asyncBookSlot(slot.id));
+                      const payload = { slotId: slot.id, client: user?.name ?? "Guest", horse: myHorse };
+                      dispatch(bookSlotOptimistic(payload));
+                      dispatch(asyncBookSlot(payload));
                       toast.success("Lesson booked!");
                     }}
                   >

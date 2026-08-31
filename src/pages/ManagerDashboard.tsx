@@ -289,7 +289,12 @@ export const ManagerDashboard: React.FC = () => {
           <ul className="summary-list">
             {lessonPreview.map((lesson) => (
               <li key={lesson.id} className="request-item">
-                <strong>{lesson.time}</strong> — {lesson.client} on {lesson.horse}
+                <strong>{lesson.time}</strong> —{" "}
+                {lesson.format === "group"
+                  ? `${lesson.bookedCount ?? 0}/${lesson.capacity ?? 0} booked (Group)`
+                  : lesson.client
+                  ? `${lesson.client} on ${lesson.horse}`
+                  : "Open arena time"}
               </li>
             ))}
           </ul>
@@ -878,7 +883,12 @@ export const ManagerDashboard: React.FC = () => {
           <ul className="summary-list mt-4">
             {lessonPreview.map(lesson => (
               <li key={lesson.id} className="request-item">
-                <strong>{lesson.time}</strong> — {lesson.client} on {lesson.horse}
+                <strong>{lesson.time}</strong> —{" "}
+                {lesson.format === "group"
+                  ? `${lesson.bookedCount ?? 0}/${lesson.capacity ?? 0} booked (Group)`
+                  : lesson.client
+                  ? `${lesson.client} on ${lesson.horse}`
+                  : "Open arena time"}
               </li>
             ))}
           </ul>

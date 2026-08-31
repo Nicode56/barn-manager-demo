@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { useDemoAuth } from "@/contexts/DemoAuthContext";
-import { isLessonAvailable } from "@/store/lessonSlice";
+import { isLessonVisibleToClient } from "@/store/lessonSlice";
 
 export const ClientDashboard: React.FC = () => {
   const { user } = useDemoAuth();
@@ -12,13 +12,10 @@ export const ClientDashboard: React.FC = () => {
   const healthEvents = useSelector((state: RootState) => state.health.events);
 
   const myHorses = animals.filter(a => a.ownerId === user?.clientId);
-  // Available Lessons = open group lessons (not full) and open private slots,
-  // plus this client's own booked private lesson so they can see/cancel it.
-  // A private lesson someone else booked, or a group lesson that's full,
-  // never shows here.
-  const myLessons = lessonSlots.filter(
-    s => isLessonAvailable(s) || (s.format !== "group" && s.client === user?.name),
-  );
+  // Available Lessons = open arena time, group lessons with room left, and
+  // this client's own private lesson booking. A private lesson someone else
+  // booked, or a full group lesson, never shows here.
+  const myLessons = lessonSlots.filter(s => isLessonVisibleToClient(s, user?.name));
   const myHealth = healthEvents.filter(h => myHorses.some(a => a.name === h.horse));
 
   return (
@@ -55,7 +52,9 @@ export const ClientDashboard: React.FC = () => {
             <div className="text-sm text-gray-700">
               {l.format === "group"
                 ? `${l.bookedCount ?? 0}/${l.capacity ?? 0} booked`
-                : `Horse: ${l.horse}`}
+                : l.client
+                ? `Horse: ${l.horse}`
+                : "Open arena time"}
               {" · Instructor: "}{l.instructor}
             </div>
           </li>

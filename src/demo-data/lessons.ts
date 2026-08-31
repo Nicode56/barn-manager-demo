@@ -23,10 +23,10 @@ export interface LessonSlot {
 }
 
 export const lessonSlots: LessonSlot[] = [
-  { id: "l1", time: "9:00 AM", available: true, client: "Emma Davis", horse: "Willow", instructor: "Jordan", type: "Beginner flatwork", format: "private" },
+  { id: "l1", time: "9:00 AM", available: true, client: "", horse: "", instructor: "Jordan", type: "Beginner flatwork", format: "private" },
   { id: "l2", time: "10:30 AM", available: false, client: "Liam Carter", horse: "Shadow", instructor: "Taylor", type: "Jumping lesson", format: "private" },
-  { id: "l3", time: "1:00 PM", available: true, client: "Ava Brooks", horse: "Daisy", instructor: "Jordan", type: "Trail prep", format: "private" },
-  { id: "l4", time: "2:30 PM", available: true, client: "Mia James", horse: "Copper", instructor: "Taylor", type: "Dressage basics", format: "private" },
+  { id: "l3", time: "1:00 PM", available: true, client: "", horse: "", instructor: "Jordan", type: "Trail prep", format: "private" },
+  { id: "l4", time: "2:30 PM", available: true, client: "", horse: "", instructor: "Taylor", type: "Dressage basics", format: "private" },
   { id: "l5", time: "11:00 AM", available: true, client: "", horse: "", instructor: "Jordan", type: "Group flatwork clinic", format: "group", capacity: 4, bookedCount: 2 },
   { id: "l6", time: "3:30 PM", available: false, client: "", horse: "", instructor: "Taylor", type: "Group jumping clinic", format: "group", capacity: 3, bookedCount: 3 },
 ];
