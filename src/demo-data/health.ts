@@ -7,7 +7,7 @@ export type HealthAppointmentType =
 export interface HealthEvent {
   id: string;
   type: HealthAppointmentType;
-  date: string; // "YYYY-MM-DD" for new appointments; loose strings ("June 15") for seed data
+  date: string; // "YYYY-MM-DD"
   time?: string; // "HH:MM", 24-hour
   horse: string;
   animalId?: number;
@@ -26,7 +26,7 @@ export const healthEvents: HealthEvent[] = [
   {
     id: "h1",
     type: "Vet check",
-    date: "June 15",
+    date: "2026-06-15",
     horse: "Copper",
     vet: "Dr. Ellis",
     notes: "Follow up on ankle swelling.",
@@ -36,7 +36,7 @@ export const healthEvents: HealthEvent[] = [
   {
     id: "h2",
     type: "Dental cleaning",
-    date: "July 1",
+    date: "2026-07-01",
     horse: "Willow",
     vet: "Dr. Patel",
     notes: "Check molar alignment.",
@@ -45,7 +45,7 @@ export const healthEvents: HealthEvent[] = [
   {
     id: "h3",
     type: "Farrier visit",
-    date: "July 10",
+    date: "2026-07-10",
     horse: "Luna",
     vet: "Farrier Jay",
     notes: "Balance left hind hoof.",

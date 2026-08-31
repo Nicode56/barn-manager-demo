@@ -99,13 +99,17 @@ export const confirmAppointment = createAsyncThunk(
   async (appointmentId: string, { dispatch, getState }) => {
     const state = getState() as RootState;
     const appointment = state.health.events.find(e => e.id === appointmentId);
+    // Seed appointments predate the animalId field and only carry the horse's
+    // name, so fall back to resolving it against the live animal list.
+    const animalId =
+      appointment?.animalId ?? state.farm.animals.find(a => a.name === appointment?.horse)?.id;
 
-    if (appointment?.animalId != null) {
+    if (appointment && animalId != null) {
       const field = PROVIDER_FIELD_BY_TYPE[appointment.type];
       const next = NEXT_APPOINTMENT_BY_TYPE[appointment.type];
       dispatch(
         recordProviderVisit({
-          animalId: appointment.animalId,
+          animalId,
           field,
           date: appointment.date,
           nextField: next?.field,

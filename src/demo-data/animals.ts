@@ -13,13 +13,11 @@ export function generateOwnerId(existingIds: number[]): number {
     : 1;
 }
 
-// Animal ID (unique 6-digit number)
+// Animal ID (unique 6-digit number). Deterministic (not random) so an
+// animal's id - and therefore its /animals/:id URL - stays the same across
+// reloads instead of a hard refresh 404ing on "Animal not found."
 export function generateAnimalId(existingIds: number[]): number {
-  let id;
-  do {
-    id = Math.floor(100000 + Math.random() * 900000);
-  } while (existingIds.includes(id));
-  return id;
+  return 100001 + existingIds.length;
 }
 
 
