@@ -1,12 +1,14 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 import { useDemoAuth } from "@/contexts/DemoAuthContext";
-import { animals } from "@/demo-data/animals";
-import { lessonSlots } from "@/demo-data/lessons";
-import { healthEvents } from "@/demo-data/health";
 
 export const ClientDashboard: React.FC = () => {
   const { user } = useDemoAuth();
+  const animals = useSelector((state: RootState) => state.farm.animals);
+  const lessonSlots = useSelector((state: RootState) => state.lessons.slots);
+  const healthEvents = useSelector((state: RootState) => state.health.events);
 
   const myHorses = animals.filter(a => a.ownerId === user?.clientId);
   const myLessons = lessonSlots.filter(
