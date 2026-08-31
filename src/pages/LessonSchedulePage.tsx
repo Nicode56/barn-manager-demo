@@ -30,20 +30,21 @@ export const LessonSchedulePage: React.FC = () => {
           const bookedCount = slot.bookedCount ?? 0;
           const capacity = slot.capacity ?? 0;
           const available = isLessonAvailable(slot);
+          // Open (unbooked) arena time carries no instructor or lesson type -
+          // it just tells the client the arena is free to book.
+          const isOpenArena = !isGroup && !slot.client && !slot.blocked;
 
           return (
             <li key={slot.id} className="bulletin-item">
               <div>
-                {slot.time} — {slot.type}
-                {isGroup ? " · Group lesson" : ""}
-                {" — "}
+                {slot.time} —{" "}
                 {slot.blocked
                   ? `Blocked${slot.blockReason ? ` (${slot.blockReason})` : ""}`
+                  : isOpenArena
+                  ? "Open arena time"
                   : isGroup
-                  ? `${bookedCount}/${capacity} booked${available ? "" : " · Full"}`
-                  : available
-                  ? "Available"
-                  : "Booked"}
+                  ? `${slot.type} · Group lesson — ${bookedCount}/${capacity} booked${available ? "" : " · Full"}`
+                  : `${slot.type ? `${slot.type} — ` : ""}${available ? "Available" : "Booked"}`}
               </div>
 
               <div className="ml-auto flex gap-3">

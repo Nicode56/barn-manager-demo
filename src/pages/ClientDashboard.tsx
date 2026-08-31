@@ -46,19 +46,26 @@ export const ClientDashboard: React.FC = () => {
 
       <h2 className="text-xl font-semibold mb-3 page-title-banner">Available Lessons</h2>
       <ul className="space-y-3 mb-8">
-        {myLessons.map(l => (
-          <li key={l.id} className="bulletin-item">
-            <strong>{l.time}</strong> — {l.type}
-            <div className="text-sm text-gray-700">
-              {l.format === "group"
-                ? `${l.bookedCount ?? 0}/${l.capacity ?? 0} booked`
-                : l.client
-                ? `Horse: ${l.horse}`
-                : "Open arena time"}
-              {" · Instructor: "}{l.instructor}
-            </div>
-          </li>
-        ))}
+        {myLessons.map(l => {
+          const isOpenArena = l.format !== "group" && !l.client;
+          return (
+            <li key={l.id} className="bulletin-item">
+              {isOpenArena ? (
+                <strong>{l.time} — Open arena time</strong>
+              ) : (
+                <>
+                  <strong>{l.time}</strong> — {l.type}
+                  <div className="text-sm text-gray-700">
+                    {l.format === "group"
+                      ? `${l.bookedCount ?? 0}/${l.capacity ?? 0} booked`
+                      : `Horse: ${l.horse}`}
+                    {" · Instructor: "}{l.instructor}
+                  </div>
+                </>
+              )}
+            </li>
+          );
+        })}
       </ul>
 
       <h2 className="text-xl font-semibold mb-3 page-title-banner">Health Appointments</h2>
